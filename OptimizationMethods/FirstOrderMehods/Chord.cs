@@ -3,7 +3,7 @@ namespace OptimizationMethods.FirstOrderMethods
 {
     internal class Chord
     {
-        internal static double Search(SymbolicExpression function,double a0, double b0, double epsilon, SymbolicExpression X)
+        internal static double Search(SymbolicExpression function,double a0, double b0, double epsilon, SymbolicExpression X, bool? alt = false)
         {
             int k = 0;
             Dictionary<int,double> x = new(), a = new(), b = new();
@@ -18,7 +18,7 @@ namespace OptimizationMethods.FirstOrderMethods
                 goto thirth;
             }
             thirth:{
-                if (Math.Abs(derivate.Evaluate(new Dictionary<string, FloatingPoint>() { { "x", x[k+1] } }).RealValue)<= epsilon){
+                if (k>2&&Math.Abs(derivate.Evaluate(new Dictionary<string, FloatingPoint>() { { "x", x[k+1] } }).RealValue)<= epsilon){
                     Console.WriteLine(k);
                     return x[k+1];
                 }
