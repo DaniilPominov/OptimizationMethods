@@ -10,6 +10,15 @@ namespace OptimizationMethods.FirstOrderMethods
             a[k] = a0;
             b[k] = b0;
             var derivate = function.Differentiate(X);
+            var checkSign = derivate.Evaluate(new Dictionary<string,FloatingPoint>(){{"x",a0}}).RealValue*
+            derivate.Evaluate(new Dictionary<string,FloatingPoint>(){{"x",b0}}).RealValue;
+            if (checkSign>=0){
+                if(derivate.Evaluate(new Dictionary<string,FloatingPoint>(){{"x",a0}}).RealValue>=0)
+                {
+                return Math.Min(a0, b0);
+                }
+                return Math.Max(a0,b0);
+            }
             goto second;
             second:{
                 var f_b = derivate.Evaluate(new Dictionary<string, FloatingPoint>() { { "x", b[k] } }).RealValue;
@@ -18,11 +27,12 @@ namespace OptimizationMethods.FirstOrderMethods
                 goto thirth;
             }
             thirth:{
-                if (Math.Abs(derivate.Evaluate(new Dictionary<string, FloatingPoint>() { { "x", x[k+1] } }).RealValue)<= epsilon){
+                if (Math.Abs(derivate.Evaluate(new Dictionary<string, FloatingPoint>() { { "x", x[k+1] } }).RealValue)<= epsilon || k>10000){
                     Console.WriteLine(k);
                     return x[k+1];
                 }
                 else{
+                    Console.WriteLine(x[k+1]);
                     goto fourth;
                 }
             }
