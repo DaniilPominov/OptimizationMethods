@@ -1,16 +1,15 @@
 using System;
 using Microsoft.FSharp.Data.UnitSystems.SI.UnitNames;
 using MathNet.Symbolics;
+using OptimizationMethods;
 
 namespace OptimizationMethods.SecondOrderMethods;
 
-public class Markvardt
+public class Markvardt : IMethod
 {
-    public static Dictionary<string,FloatingPoint> GetPointX(double x){
-        return new Dictionary<string,FloatingPoint>(){{"x",x}};
-    }
     public static double Search(SymbolicExpression function,double x0, double epsilon, SymbolicExpression X)
     {
+        var GetPointX = Common.GetPointX;
         Dictionary<int, double> x = new();
         int k = 0;
         double mu = 10;
