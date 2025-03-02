@@ -1,7 +1,7 @@
 ﻿using MathNet.Symbolics;
-using OptimizationMethods.FirstOrderMethods;
-using OptimizationMethods.SecondOrderMethods;
 using OptimizationMethods.Approximations;
+using OptimizationMethods.GradientDescent;
+using Expr = MathNet.Symbolics.SymbolicExpression;
 
 namespace OptimizationMethods
 {
@@ -12,20 +12,18 @@ namespace OptimizationMethods
 
             double epsilon = Math.Pow(10, -6);
 
-            var x = SymbolicExpression.Variable("x");
-            var x1 = -4;
-            var x2 = -2;
-
-            SymbolicExpression func = x.Pow(3) -x + (-x).Exp();
-            //SymbolicExpression func = -x.Pow(2);
-            Console.WriteLine(func.ToString());
-
-            var result = Cubic.Search(func, x1, x2,epsilon,x);
-
-            var val = func.Evaluate(new Dictionary<string, FloatingPoint>() { { "x",result} }).RealValue;
-
-
-            Console.WriteLine($"Минимум при начальных х1={x1}, x2={x2} \nx* = {result}, f(x*) = {val}");
+            var x = Expr.Variable("x");
+            var y = Expr.Variable("y");
+            var z = Expr.Variable("z");
+            //var x1 = -1.0;
+            //var x2 = 10.0;
+            //var x3 = 1.0;
+            var x1 = 1.0;
+            var x2 = 2.0;
+            var x3 = 0.0;
+            Expr func = x.Pow(5) -5*x + +10*(-x.Pow(2)+y).Pow(2)+z.Pow(3)-1-6*z;
+            var result = StepSplitting.Search(func, x, y, z, (x1, x2, x3), epsilon, 0.1,null);
+            Console.WriteLine(result);
         }
     }
 }
