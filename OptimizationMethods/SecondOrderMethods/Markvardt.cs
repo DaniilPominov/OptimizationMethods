@@ -7,11 +7,11 @@ namespace OptimizationMethods.SecondOrderMethods;
 
 public class Markvardt : IMethod
 {
-    public static Vector<double> Search(Expr f, Expr x, Expr y, Expr z, Vector<double> initialGuess, double epsilon, double tolerance, int maxIterations)
+    public static Vector<double> Search(Expr f, Expr x, Expr y, Expr z, Vector<double> initialGuess, double epsilon, double InitTolerance, int maxIterations)
     {
         //градиент функции
         var gradient = new[] { f.Differentiate(x), f.Differentiate(y), f.Differentiate(z) };
-
+        var tolerance = InitTolerance;
         //гессиан функции
         var hessian = new[,]
         {
@@ -52,8 +52,8 @@ public class Markvardt : IMethod
                 tolerance /= 2;
                 if (tolerance <= 1.0 / 10000000.0)
                 {
-                    Console.WriteLine(currentPoint);
-                    throw new MaximumIterationsException("tolerance become too small");
+                    Console.WriteLine($"tolerance become too small,{k}");
+                    return currentPoint;
                 }
                     goto checkEnd;
             }
@@ -62,8 +62,8 @@ public class Markvardt : IMethod
                 tolerance *= 2;
                 if(tolerance>= 10000000)
                 {
-                    Console.WriteLine(currentPoint);
-                    throw new MaximumIterationsException("tolerance become too big");
+                    Console.WriteLine($"tolerance become too big,{k}");
+                    return currentPoint;
                 }
                 goto evalute;
             }
