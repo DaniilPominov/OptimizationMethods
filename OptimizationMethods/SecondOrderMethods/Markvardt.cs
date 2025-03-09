@@ -1,10 +1,6 @@
 using MathNet.Symbolics;
 using MathNet.Numerics.LinearAlgebra;
 using Expr = MathNet.Symbolics.SymbolicExpression;
-using MathNet.Numerics.Optimization;
-using MathNet.Numerics.LinearAlgebra.Double;
-using static MathNet.Symbolics.VisualExpression;
-using System.Drawing;
 
 namespace OptimizationMethods.SecondOrderMethods;
 
@@ -77,8 +73,8 @@ public class Markvardt : IMethod
             var identityMatrix = Matrix<double>.Build.DenseIdentity(vars.Count);
 
             var nextPoint = currentPoint - (hess + tolerance * identityMatrix).Inverse()*grad;
-            if (f.Evaluate(BuildPointDict(nextPoint, vars)).RealValue <
-                f.Evaluate(BuildPointDict(currentPoint, vars)).RealValue)
+            if (f.Evaluate(Common.BuildPointDict(nextPoint, vars)).RealValue <
+                f.Evaluate(Common.BuildPointDict(currentPoint, vars)).RealValue)
             {
                 currentPoint = nextPoint;
                 k += 1;
@@ -159,7 +155,7 @@ public class Markvardt : IMethod
         //    { "y", point[1] },
         //    { "z", point[2] }
         //};
-        var symbols = BuildPointDict(point, vars);
+        var symbols = Common.BuildPointDict(point, vars);
 
         for (int i = 0; i < vars.Count; i++)
             result[i] = gradient[i].Evaluate(symbols).RealValue;
@@ -170,7 +166,7 @@ public class Markvardt : IMethod
     static Matrix<double> EvaluateHessian(Expr[,] hessian, Vector<double> point, List<Expr> vars)
     {
         var result = Matrix<double>.Build.Dense(vars.Count, vars.Count);
-        var symbols = BuildPointDict(point, vars);
+        var symbols = Common.BuildPointDict(point, vars);
 
         for (int i = 0; i < vars.Count; i++)
             for (int j = 0; j < vars.Count; j++)
@@ -178,14 +174,6 @@ public class Markvardt : IMethod
 
         return result;
     }
-    static Dictionary<string, FloatingPoint> BuildPointDict(Vector<double> point, List<Expr> vars)
-    {
-        var symbols = new Dictionary<string, FloatingPoint>();
-        for (int i = 0; i < vars.Count; i++)
-        {
-            symbols[vars[i].VariableName] = point[i];
-        }
-        return symbols;
-    }
+    
 
 }
