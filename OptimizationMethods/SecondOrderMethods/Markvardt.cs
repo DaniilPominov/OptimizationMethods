@@ -8,16 +8,16 @@ public class Markvardt : IMethod
 {
     static bool IsPositiveDefinite(Matrix<double> matrix)
     {
-        // Проверяем, что матрица симметрична
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (!matrix.IsSymmetric())
         {
             return false;
         }
 
-        // Вычисляем собственные значения
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         var eigenValues = matrix.Evd().EigenValues;
 
-        // Проверяем, что все собственные значения положительны
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         foreach (var eigenValue in eigenValues)
         {
             if (eigenValue.Real <= 0)
@@ -30,15 +30,15 @@ public class Markvardt : IMethod
     }
     public static Vector<double> Search(Expr f, List<Expr> vars, Vector<double> initialGuess, double epsilon, double InitTolerance, int maxIterations)
     {
-        //градиент функции
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Expr[] gradient = new Expr[vars.Count];
         for (int i = 0; i < vars.Count; i++)
         {
-            gradient[i]= (f.Differentiate(vars[i]));
+            gradient[i]= f.Differentiate(vars[i]);
         }
 
         var tolerance = InitTolerance;
-        //гессиан функции
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Expr[,] hessian = new Expr[vars.Count, vars.Count];
         for(int i =0;i<vars.Count;i++)
         {
@@ -50,16 +50,19 @@ public class Markvardt : IMethod
         var currentPoint = initialGuess;
         var grad = EvaluateGradient(gradient, currentPoint,vars);
         var hess = EvaluateHessian(hessian, currentPoint,vars);
-        if (!IsPositiveDefinite(hess))
-            Console.WriteLine("Неудачное начальное приближение, матрица Гесе не положительно определенная");
+
         int k = 0;
         checkEnd:
         {
             grad = EvaluateGradient(gradient, currentPoint,vars);
             if (grad.L2Norm() <= epsilon || k>maxIterations) {
 #if DEBUG
-                Console.WriteLine($"Алгоритм остановился после {k} итераций");
-#endif
+                Console.WriteLine($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ {k} пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
+#endif          
+                Console.WriteLine("hessian");
+                Console.WriteLine(hess);
+                Console.WriteLine("Positive?");
+                Console.WriteLine(IsPositiveDefinite(hess));
                 return currentPoint;
             }
             //goto evalute;
@@ -69,27 +72,24 @@ public class Markvardt : IMethod
         {
             //var hess  = EvaluateHessian(hessian,currentPoint);
             
-            //единичная матрица
+            //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             var identityMatrix = Matrix<double>.Build.DenseIdentity(vars.Count);
+            var subMatrix = (hess + tolerance * identityMatrix).Inverse();
 
-            var nextPoint = currentPoint - (hess + tolerance * identityMatrix).Inverse()*grad;
+            var nextPoint = currentPoint - subMatrix*grad;
             if (f.Evaluate(Common.BuildPointDict(nextPoint, vars)).RealValue <
                 f.Evaluate(Common.BuildPointDict(currentPoint, vars)).RealValue)
             {
+                var fValue = f.Evaluate(Common.BuildPointDict(nextPoint,vars));
                 currentPoint = nextPoint;
                 k += 1;
                 tolerance /= 2;
-                if (tolerance <= 1.0 / 10000000.0)
-                {
-                    Console.WriteLine($"tolerance become too small,{k}");
-                    return currentPoint;
-                }
                     goto checkEnd;
             }
             else
             {
                 tolerance *= 2;
-                if(tolerance>= 10000000)
+                if(tolerance>= 100000000)
                 {
                     Console.WriteLine($"tolerance become too big,{k}");
                     return currentPoint;

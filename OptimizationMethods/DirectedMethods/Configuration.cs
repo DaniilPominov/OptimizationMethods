@@ -14,42 +14,49 @@ namespace OptimizationMethods.DirectedMethods
             var currentPoint = initialPoint;
             var newPoint = Vector<double>.Build.Dense(currentPoint.ToArray());
             var testPoint = Vector<double>.Build.Dense(currentPoint.ToArray());
-            List<double> delta = new List<double>();
+            List<double> deltaList = new List<double>();
             if (deltas != null)
-                delta = deltas;
+                deltaList = deltas;
             else {
                 for (int j = 0; j < vars.Count; j++)
                 {
-                    delta.Add(10*epsilon);
+                    deltaList.Add(10*epsilon);
                 }
             }
+            var delta = Vector<double>.Build.Dense(deltaList.ToArray());
+
             second:
             {
+                //в newPoint хранится y_i, в  testPoint записывается предварительная y_i+1
                 testPoint = Vector<double>.Build.Dense(newPoint.ToArray());
-                
+                //Console.WriteLine($"k={k},  value={f.Evaluate(Common.BuildPointDict(testPoint,vars)).RealValue}, point={testPoint}");
+                //y_i +delta*d
                 testPoint[i] = newPoint[i] + delta[i];
                 if (f.Evaluate(Common.BuildPointDict(testPoint, vars)).RealValue <
                     f.Evaluate(Common.BuildPointDict(newPoint, vars)).RealValue)
                     goto third;
                 testPoint = Vector<double>.Build.Dense(newPoint.ToArray());
+                //y_i -delta*d
                 testPoint[i] = newPoint[i] - delta[i];
                 if (f.Evaluate(Common.BuildPointDict(testPoint, vars)).RealValue <
                     f.Evaluate(Common.BuildPointDict(newPoint, vars)).RealValue)
                     goto third;
+                    //иначе ничего не меняем y_i+1 = y_i
                 testPoint = Vector<double>.Build.Dense(newPoint.ToArray());
             }
             third:
             {
+                //y_i+1 = y_i +-delta*d
+                    newPoint = Vector<double>.Build.Dense(testPoint.ToArray());
                 if (i < vars.Count-1)
                 {
                     i++;
-                    newPoint = Vector<double>.Build.Dense(testPoint.ToArray()); ;
                     goto second;
                 }
                 else
                 {
-                    i = 0;
-                    if (f.Evaluate(Common.BuildPointDict(testPoint, vars)).RealValue <
+                    i = 0;                          
+                    if (f.Evaluate(Common.BuildPointDict(newPoint, vars)).RealValue <
                         f.Evaluate(Common.BuildPointDict(currentPoint, vars)).RealValue)
                         goto fourth;
                     goto fifth;
@@ -57,7 +64,7 @@ namespace OptimizationMethods.DirectedMethods
             }
             fourth:
             {
-                newPoint = Vector<double>.Build.Dense(testPoint.ToArray());
+                //newPoint = Vector<double>.Build.Dense(testPoint.ToArray());
                 var buf = Vector<double>.Build.Dense(newPoint.ToArray());
                 newPoint = newPoint + labmda * (newPoint - currentPoint);
                 currentPoint = buf;
@@ -81,7 +88,7 @@ namespace OptimizationMethods.DirectedMethods
                     k++;
                     goto second;
                 }
-                Console.WriteLine(k);
+                Console.WriteLine($"iterations left:{k}");
                 return currentPoint;
             }
         }
