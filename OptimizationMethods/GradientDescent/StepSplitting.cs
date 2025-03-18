@@ -1,12 +1,13 @@
 ﻿using MathNet.Symbolics;
 using Expr = MathNet.Symbolics.SymbolicExpression;
 using MathNet.Numerics.LinearAlgebra;
-
+using OptimizationMethods.SecondOrderMethods;
 namespace OptimizationMethods.GradientDescent
 {
     internal class StepSplitting
     {
-        internal static Vector<double> Search(Expr f, Expr x, Expr y, Expr z, (double,double,double) start, double epsiolon,double initStep, double? d)
+        internal static Vector<double> Search(Expr f, List<Expr> vars, Vector<double> initialGuess,
+         double epsiolon,double initStep, double? d,Vector<double> otherMethodDirection=null)
         {
             int maxIterations = 100000;
             var stepSize = initStep;
@@ -15,18 +16,20 @@ namespace OptimizationMethods.GradientDescent
             int iterCount = 0;
 #endif
             //вспомогательная структара
-            var gradient = new[] { f.Differentiate(x), f.Differentiate(y), f.Differentiate(z) };
-            var initialPoint = Vector<double>.Build.Dense(new[] { start.Item1, start.Item2, start.Item3 });
-            var currentPoint = initialPoint;
+            Expr[] gradient = new Expr[vars.Count];
+                for (int i = 0; i < vars.Count; i++)
+                {
+                    gradient[i]= f.Differentiate(vars[i]);
+                }
+            var initialPoint = initialGuess.Clone();
+            var currentPoint = initialPoint.Clone();
             for (int i = 0; i < maxIterations; i++)
             {
                 // Вычисляем градиент в текущей точке
-                var grad = Vector<double>.Build.Dense(new[]
-                {
-                gradient[0].Evaluate(new Dictionary<string, FloatingPoint> { { "x", currentPoint[0] }, { "y", currentPoint[1] }, { "z", currentPoint[2] } }).RealValue,
-                gradient[1].Evaluate(new Dictionary<string, FloatingPoint> { { "x", currentPoint[0] }, { "y", currentPoint[1] }, { "z", currentPoint[2] } }).RealValue,
-                gradient[2].Evaluate(new Dictionary<string, FloatingPoint> { { "x", currentPoint[0] }, { "y", currentPoint[1] }, { "z", currentPoint[2] } }).RealValue
-            });
+                
+                var grad = Markvardt.EvaluateGradient(gradient,currentPoint,vars);
+                if(otherMethodDirection!=null)
+                grad = otherMethodDirection;
 
                 // Обновляем точку
                 var nextPoint = currentPoint - stepSize * grad;
@@ -42,16 +45,18 @@ namespace OptimizationMethods.GradientDescent
                 }
 
                 // Дробление шага, если функция не уменьшается
-                while (f.Evaluate(new Dictionary<string, FloatingPoint> { { "x", nextPoint[0] }, { "y", nextPoint[1] }, { "z", nextPoint[2] } }).RealValue >
-                       f.Evaluate(new Dictionary<string, FloatingPoint> { { "x", currentPoint[0] }, { "y", currentPoint[1] }, { "z", currentPoint[2] } }).RealValue)
+                while (f.Evaluate(Common.BuildPointDict(nextPoint,vars)).RealValue >
+                       f.Evaluate(Common.BuildPointDict(currentPoint,vars)).RealValue)
                 {
 
                     stepSize *= delta;
+                    
+                    nextPoint = currentPoint - stepSize * grad;
+
                     if(stepSize <= epsiolon)
                     {
-                        throw new Exception();
+                        return nextPoint;
                     }
-                    nextPoint = currentPoint - stepSize * grad;
                 }
                 stepSize = initStep;
                 

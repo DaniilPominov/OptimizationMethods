@@ -146,7 +146,7 @@ public class Markvardt : IMethod
             }
         }
     }
-    static Vector<double> EvaluateGradient(Expr[] gradient, Vector<double> point, List<Expr> vars)
+    public static Vector<double> EvaluateGradient(Expr[] gradient, Vector<double> point, List<Expr> vars)
     {
         var result = Vector<double>.Build.Dense(vars.Count);
         //var symbols = new Dictionary<string, FloatingPoint>
@@ -163,7 +163,7 @@ public class Markvardt : IMethod
         return result;
     }
 
-    static Matrix<double> EvaluateHessian(Expr[,] hessian, Vector<double> point, List<Expr> vars)
+    public static Matrix<double> EvaluateHessian(Expr[,] hessian, Vector<double> point, List<Expr> vars)
     {
         var result = Matrix<double>.Build.Dense(vars.Count, vars.Count);
         var symbols = Common.BuildPointDict(point, vars);
@@ -174,6 +174,48 @@ public class Markvardt : IMethod
 
         return result;
     }
-    
+    public static double MarquardtLineSearch(
+            Func<Vector<double>, double> function,
+            Func<Vector<double>, Vector<double>> gradient,
+            Func<Vector<double>, Matrix<double>> hessian,
+            Vector<double> point,
+            Vector<double> direction,
+            double initialStep = 1.0,
+            double lambda = 1.0,
+            double tolerance = 1e-6,
+            int maxIterations = 100)
+        {
+            double step = initialStep;
+            double previousStepValue = function(point + step * direction);
+
+            for (int i = 0; i < maxIterations; i++)
+             {
+                Vector<double> newPoint = point + step * direction;
+                
+                Vector<double> grad = gradient(newPoint);
+                Matrix<double> hess = hessian(newPoint);
+                
+                double firstDerivative = grad.DotProduct(direction);
+                double secondDerivative = direction.DotProduct(hess * direction);
+
+                double adjustedSecondDerivative = secondDerivative + lambda;
+                
+                if (Math.Abs(adjustedSecondDerivative) < double.Epsilon)
+                    adjustedSecondDerivative = Math.Sign(adjustedSecondDerivative) * tolerance;
+
+                double delta = -firstDerivative / adjustedSecondDerivative;
+                step += delta;
+
+                double currentStepValue = function(point + step * direction);
+                
+                if (Math.Abs(delta) < tolerance || Math.Abs(currentStepValue - previousStepValue) < tolerance)
+                    break;
+                previousStepValue = currentStepValue;
+                
+                lambda = adjustedSecondDerivative <= 0 ? lambda * 10 : lambda / 10;
+            }
+
+            return step;
+        }
 
 }
