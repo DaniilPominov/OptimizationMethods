@@ -26,20 +26,29 @@ public class Conjugate
         }
         second:{
             grad = Markvardt.EvaluateGradient(gradient,currentPoint,vars);
-            if(grad.L2Norm()<=epsilon || k>M){
-                return currentPoint;
+                bool fDifference = false;
+                if (k > 1)
+                {
+                    fDifference = f.Evaluate(Common.BuildPointDict(currentPoint, vars)).RealValue -
+                    f.Evaluate(Common.BuildPointDict(oldPoint, vars)).RealValue < epsilon;
+                }
+            if(grad.L2Norm()<=epsilon || k>M || fDifference)
+                {
+                        return currentPoint;
             }
 
         }
         thirth:{
-            
-            if(k==0 || p==null)
-            p = Vector<double>.Build.Dense((-grad).ToArray());
-            
-            var oldGrad = Markvardt.EvaluateGradient(gradient,oldPoint,vars);
-            beta = grad.L2Norm()/oldGrad.L2Norm();
-            p = -grad+p*beta;
-            var L = StepSplitting.Search(f,vars,currentPoint,epsilon,0.9,0.5,
+
+                if (k == 0 || p == null)
+                    p = Vector<double>.Build.Dense((-grad).ToArray());
+                else
+                {
+                    var oldGrad = Markvardt.EvaluateGradient(gradient, oldPoint, vars);
+                    beta = grad.L2Norm() / oldGrad.L2Norm();
+                    p = -grad + p * beta;
+                }
+            var L = StepSplitting.Search(f,vars,currentPoint,epsilon,0.1,0.9,
                 p);
             var buff = currentPoint.Clone();
             currentPoint = currentPoint + L*p;

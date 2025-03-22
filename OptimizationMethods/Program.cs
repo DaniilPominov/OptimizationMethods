@@ -1,5 +1,6 @@
 using MathNet.Numerics.LinearAlgebra;
 using OptimizationMethods.Conjugate;
+using OptimizationMethods.GradientDescent;
 using Expr = MathNet.Symbolics.SymbolicExpression;
 
 namespace OptimizationMethods
@@ -15,9 +16,9 @@ namespace OptimizationMethods
             var x = Expr.Variable("x");
             var y = Expr.Variable("y");
             var z = Expr.Variable("z");
-            var x1 = 0.8;
-            var x2 = 0.8;
-            var x3 = 1;
+            var x1 = 0.1;
+            var x2 = 0.1;
+            var x3 = 0.1;
             //var x3 = 0.0;
             var testPoints = new[] { 
                 Vector<double>.Build.Dense([x1, x2,x3]),
@@ -33,22 +34,22 @@ namespace OptimizationMethods
             
             //Expr func = 4 * (x - 5).Pow(2) + (y - 6).Pow(2);
             Console.WriteLine(func);
-            // foreach (var point in testPoints)
-            // {
-            //     Console.WriteLine(point);
-            //     //var result = Markvardt.Search(func,vars,point,epsilon,20000,10000);
-            //     var result = StepSplitting.Search(func,vars,point,epsilon,0.5,0.9,
-            //     Vector<double>.Build.Dense(new double[]{0.99999-(x1),0.99999-(x2),1.41421-x3}));
-            //     Console.WriteLine($"point={result}, f(M)={func.Evaluate(Common.BuildPointDict(result,vars)).RealValue}");
-            // }
+            //foreach (var point in testPoints)
+            //{
+            //    Console.WriteLine(point);
+            //    //var result = Markvardt.Search(func,vars,point,epsilon,20000,10000);
+            //    var result = StepSplitting.Search(func, vars, point, epsilon, 0.1, 0.1,
+            //    Vector<double>.Build.Dense(new double[] { -1 - (x1), -1 - (x2), -1.41421 - x3 }));
+            //    Console.WriteLine($"point={result}, f(M)={func.Evaluate(Common.BuildPointDict(result, vars)).RealValue}");
+            //}
             foreach (var point in testPoints)
             {
                 Console.WriteLine(point);
                 //var result = Markvardt.Search(func,vars,point,epsilon,20000,10000);
-                var result = Conjugate.Conjugate.Search(func,vars,point,epsilon,200);
-                Console.WriteLine($"point={result}, f(M)={func.Evaluate(Common.BuildPointDict(result,vars)).RealValue}");
+                var result = Conjugate.Conjugate.Search(func, vars, point, epsilon, 200);
+                Console.WriteLine($"point={result}, f(M)={func.Evaluate(Common.BuildPointDict(result, vars)).RealValue}");
             }
-            
+
         }
     }
 }
