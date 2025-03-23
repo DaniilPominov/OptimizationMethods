@@ -9,7 +9,11 @@ namespace OptimizationMethods.Conjugate{
 //Метод Флетчера-Ривса
 public class Conjugate
 {
-    public static Vector<double> Search(Expr f, List<Expr> vars, Vector<double> initialPoint, double epsilon, int M)
+        public static Vector<double> Search(Expr f, List<Expr> vars,
+            Vector<double> initialPoint, double epsilon, int M,
+            double secondEpsilon = 1 / 100, double stepSplitInit = 0.1, 
+            double stepSplitCoeff = 0.4
+        )
     {
         int k = 0;
         Expr[] gradient = new Expr[vars.Count];
@@ -45,11 +49,15 @@ public class Conjugate
                 else
                 {
                     var oldGrad = Markvardt.EvaluateGradient(gradient, oldPoint, vars);
-                    beta = grad.L2Norm() / oldGrad.L2Norm();
+                    var gradVal = grad.L2Norm();
+                    var oldGradVal = oldGrad.L2Norm();
+                    beta = (grad.L2Norm()* grad.L2Norm()) / (oldGrad.L2Norm()* oldGrad.L2Norm());
                     p = -grad + p * beta;
                 }
-            var L = StepSplitting.Search(f,vars,currentPoint,epsilon,0.1,0.9,
-                p);
+            var Lsub = StepSplitting.Search(f,vars,currentPoint,
+                secondEpsilon, stepSplitInit, stepSplitCoeff,
+                -p);
+                var L = (Lsub - currentPoint) *(p) /(p.L2Norm()* p.L2Norm());
             var buff = currentPoint.Clone();
             currentPoint = currentPoint + L*p;
             oldPoint = buff.Clone();
