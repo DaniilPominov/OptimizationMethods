@@ -11,7 +11,7 @@ public class Conjugate
 {
         public static Vector<double> Search(Expr f, List<Expr> vars,
             Vector<double> initialPoint, double epsilon, int M,
-            double secondEpsilon = 1 / 100, double stepSplitInit = 0.1, 
+            double secondEpsilon = 1.0 / 100.0, double stepSplitInit = 0.1, 
             double stepSplitCoeff = 0.4
         )
     {
