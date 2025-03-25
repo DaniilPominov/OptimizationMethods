@@ -38,6 +38,7 @@ public class Conjugate
                 }
             if(grad.L2Norm()<=epsilon || k>M || fDifference)
                 {
+                    Console.WriteLine($"iterations left:{k}");
                         return currentPoint;
             }
 
@@ -49,19 +50,21 @@ public class Conjugate
                 else
                 {
                     var oldGrad = Markvardt.EvaluateGradient(gradient, oldPoint, vars);
-                    var gradVal = grad.L2Norm();
-                    var oldGradVal = oldGrad.L2Norm();
+
                     beta = (grad.L2Norm()* grad.L2Norm()) / (oldGrad.L2Norm()* oldGrad.L2Norm());
                     p = -grad + p * beta;
                 }
             var Lsub = StepSplitting.Search(f,vars,currentPoint,
                 secondEpsilon, stepSplitInit, stepSplitCoeff,
                 -p);
-                var L = (Lsub - currentPoint) *(p) /(p.L2Norm()* p.L2Norm());
+            var L = (Lsub - currentPoint) *(p) /(p.L2Norm()* p.L2Norm());
             var buff = currentPoint.Clone();
             currentPoint = currentPoint + L*p;
             oldPoint = buff.Clone();
             k++;
+            if(k>=M){
+                return currentPoint;
+            }
             goto second;
         }
         
