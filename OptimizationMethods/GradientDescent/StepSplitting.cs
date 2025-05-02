@@ -77,7 +77,6 @@ namespace OptimizationMethods.GradientDescent
             {
                 foreach (var h in equalityConstraints)
                 {
-                    //penalized += penaltyCoefficient * h.Pow(2);
                     penalized += penaltyCoefficient * h.Pow(2);
                 }
             }
@@ -86,7 +85,7 @@ namespace OptimizationMethods.GradientDescent
             {
                 foreach (var g in inequalityConstraints)
                 {
-                    var smoothMax = (g + (g.Pow(2) + epsilon).Sqrt()) / 2;
+                    var smoothMax = (g + (g.Pow(2)).Sqrt())/2;
                     penalized += penaltyCoefficient * smoothMax.Pow(2);
                 }
             }
@@ -104,9 +103,10 @@ namespace OptimizationMethods.GradientDescent
             Vector<double> otherMethodDirection = null,
             List<Expr> equalityConstraints = null,
             List<Expr> inequalityConstraints = null,
-            double penaltyCoefficient = 1.0)
+            double penaltyCoefficient = 1.0,
+            double penaltyIncrease = 1.0)
         {
-            int maxIterations = 100000;
+            int maxIterations = 500;
             var stepSize = initStep;
             var delta = d ?? 0.5;
 #if DEBUG
@@ -141,18 +141,18 @@ namespace OptimizationMethods.GradientDescent
 #endif
                     break;
                 }
-
+                
                 double currentValue = functionToUse.Evaluate(Common.BuildPointDict(currentPoint, vars)).RealValue;
                 double nextValue = functionToUse.Evaluate(Common.BuildPointDict(nextPoint, vars)).RealValue;
-
-                while (nextValue > currentValue)
+                int subCicleIters = 0;
+                while (nextValue > currentValue && subCicleIters++<maxIterations)
                 {
                     stepSize *= delta;
                     nextPoint = currentPoint - stepSize * grad;
 
                     if (stepSize <= epsilon)
                     {
-                        return nextPoint;
+                        stepSize = initStep;
                     }
 
                     nextValue = functionToUse.Evaluate(Common.BuildPointDict(nextPoint, vars)).RealValue;
@@ -160,6 +160,12 @@ namespace OptimizationMethods.GradientDescent
 
                 stepSize = initStep;
                 currentPoint = nextPoint;
+
+                penaltyCoefficient *= penaltyIncrease;
+                if ((equalityConstraints?.Count ?? 0) > 0 || (inequalityConstraints?.Count ?? 0) > 0)
+                {
+                    functionToUse = BuildPenalizedFunction(f, equalityConstraints, inequalityConstraints, penaltyCoefficient);
+                }
             }
 
 #if DEBUG

@@ -23,13 +23,14 @@ namespace OptimizationMethods
             var result = StepSplitting.Search(
                 f: objective,
                 vars: vars,
-                initialGuess: Vector<double>.Build.Dense(new[] { 2.0, 3.0 }),
+                initialGuess: Vector<double>.Build.Dense(new[] { 0.0, 3.0 }),
                 epsilon: 1e-6,
-                initStep: 0.1,
+                initStep: 0.5,
                 d: 0.5,
                 //equalityConstraints: equality,
                 inequalityConstraints: inequality,
-                penaltyCoefficient: 10.0
+                penaltyCoefficient: 0.5,
+                penaltyIncrease: 1.1
             );
             Console.WriteLine(result);
 
