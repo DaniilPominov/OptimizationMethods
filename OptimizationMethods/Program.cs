@@ -29,8 +29,8 @@ namespace OptimizationMethods
                 d: 0.5,
                 //equalityConstraints: equality,
                 inequalityConstraints: inequality,
-                penaltyCoefficient: 0.5,
-                penaltyIncrease: 1.1
+                penaltyCoefficient: 4.5,
+                penaltyIncrease: 1.5
             );
             Console.WriteLine(result);
 

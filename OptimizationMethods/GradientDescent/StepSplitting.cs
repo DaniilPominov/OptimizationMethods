@@ -106,6 +106,7 @@ namespace OptimizationMethods.GradientDescent
             double penaltyCoefficient = 1.0,
             double penaltyIncrease = 1.0)
         {
+            start:
             int maxIterations = 500;
             var stepSize = initStep;
             var delta = d ?? 0.5;
@@ -161,11 +162,16 @@ namespace OptimizationMethods.GradientDescent
                 stepSize = initStep;
                 currentPoint = nextPoint;
 
+                
+            }
+            if (functionToUse.Evaluate(Common.BuildPointDict(currentPoint, vars)).RealValue > epsilon)
+            {
                 penaltyCoefficient *= penaltyIncrease;
                 if ((equalityConstraints?.Count ?? 0) > 0 || (inequalityConstraints?.Count ?? 0) > 0)
                 {
                     functionToUse = BuildPenalizedFunction(f, equalityConstraints, inequalityConstraints, penaltyCoefficient);
                 }
+                goto start;
             }
 
 #if DEBUG
