@@ -69,9 +69,9 @@ namespace OptimizationMethods.GradientDescent
 
         }
 
-        private static Expr BuildPenalizedFunction(Expr f, List<Expr> equalityConstraints, List<Expr> inequalityConstraints, double penaltyCoefficient, double epsilon = 1e-8)
+        public static (Expr,Expr) BuildPenalizedFunction(Expr f, List<Expr> equalityConstraints, List<Expr> inequalityConstraints, double penaltyCoefficient, double epsilon = 1e-8)
         {
-            Expr penalized = f;
+            Expr penalized = Expr.Parse("0");
 
             if (equalityConstraints != null)
             {
@@ -90,94 +90,78 @@ namespace OptimizationMethods.GradientDescent
                 }
             }
 
-            return penalized;
+            return (f+penalized,penalized);
         }
 
-        internal static Vector<double> Search(
-            Expr f,
-            List<Expr> vars,
-            Vector<double> initialGuess,
-            double epsilon,
-            double initStep,
-            double? d,
-            Vector<double> otherMethodDirection = null,
-            List<Expr> equalityConstraints = null,
-            List<Expr> inequalityConstraints = null,
-            double penaltyCoefficient = 1.0,
-            double penaltyIncrease = 1.0)
-        {
-            start:
-            int maxIterations = 500;
-            var stepSize = initStep;
-            var delta = d ?? 0.5;
-#if DEBUG
-            int iterCount = 0;
-#endif
-            Expr functionToUse = f;
-            if ((equalityConstraints?.Count ?? 0) > 0 || (inequalityConstraints?.Count ?? 0) > 0)
-            {
-                functionToUse = BuildPenalizedFunction(f, equalityConstraints, inequalityConstraints, penaltyCoefficient);
-            }
+//        internal static Vector<double> Search(
+//            Expr f,
+//            List<Expr> vars,
+//            Vector<double> initialGuess,
+//            double epsilon,
+//            double initStep,
+//            double? d,
+//            Vector<double> otherMethodDirection = null,
+//            List<Expr> equalityConstraints = null,
+//            List<Expr> inequalityConstraints = null,
+//            double penaltyCoefficient = 1.0,
+//            double penaltyIncrease = 1.0)
+//        {
+//            int maxIterations = 500;
+//            var stepSize = initStep;
+//            var delta = d ?? 0.5;
+//#if DEBUG
+//            int iterCount = 0;
+//#endif
+//            Expr[] gradient = new Expr[vars.Count];
+//            for (int i = 0; i < vars.Count; i++)
+//            {
+//                gradient[i] = f.Differentiate(vars[i]);
+//            }
 
-            Expr[] gradient = new Expr[vars.Count];
-            for (int i = 0; i < vars.Count; i++)
-            {
-                gradient[i] = functionToUse.Differentiate(vars[i]);
-            }
+//            var currentPoint = initialGuess.Clone();
 
-            var currentPoint = initialGuess.Clone();
+//            for (int i = 0; i < maxIterations; i++)
+//            {
+//                var grad = Markvardt.EvaluateGradient(gradient, currentPoint, vars);
+//                if (otherMethodDirection != null)
+//                    grad = otherMethodDirection;
 
-            for (int i = 0; i < maxIterations; i++)
-            {
-                var grad = Markvardt.EvaluateGradient(gradient, currentPoint, vars);
-                if (otherMethodDirection != null)
-                    grad = otherMethodDirection;
+//                var nextPoint = currentPoint - stepSize * grad;
 
-                var nextPoint = currentPoint - stepSize * grad;
-
-                if (grad.L2Norm() < epsilon)
-                {
-#if DEBUG
-                    iterCount = i;
-#endif
-                    break;
-                }
+//                if (grad.L2Norm() < epsilon)
+//                {
+//#if DEBUG
+//                    iterCount = i;
+//#endif
+//                    break;
+//                }
                 
-                double currentValue = functionToUse.Evaluate(Common.BuildPointDict(currentPoint, vars)).RealValue;
-                double nextValue = functionToUse.Evaluate(Common.BuildPointDict(nextPoint, vars)).RealValue;
-                int subCicleIters = 0;
-                while (nextValue > currentValue && subCicleIters++<maxIterations)
-                {
-                    stepSize *= delta;
-                    nextPoint = currentPoint - stepSize * grad;
+//                double currentValue = f.Evaluate(Common.BuildPointDict(currentPoint, vars)).RealValue;
+//                double nextValue = f.Evaluate(Common.BuildPointDict(nextPoint, vars)).RealValue;
+//                int subCicleIters = 0;
+//                while (nextValue > currentValue && subCicleIters++<maxIterations)
+//                {
+//                    stepSize *= delta;
+//                    nextPoint = currentPoint - stepSize * grad;
 
-                    if (stepSize <= epsilon)
-                    {
-                        stepSize = initStep;
-                    }
+//                    if (stepSize <= epsilon)
+//                    {
+//                        stepSize = initStep;
+//                    }
 
-                    nextValue = functionToUse.Evaluate(Common.BuildPointDict(nextPoint, vars)).RealValue;
-                }
+//                    nextValue = f.Evaluate(Common.BuildPointDict(nextPoint, vars)).RealValue;
+//                }
 
-                stepSize = initStep;
-                currentPoint = nextPoint;
+//                stepSize = initStep;
+//                currentPoint = nextPoint;
 
                 
-            }
-            if (functionToUse.Evaluate(Common.BuildPointDict(currentPoint, vars)).RealValue > epsilon)
-            {
-                penaltyCoefficient *= penaltyIncrease;
-                if ((equalityConstraints?.Count ?? 0) > 0 || (inequalityConstraints?.Count ?? 0) > 0)
-                {
-                    functionToUse = BuildPenalizedFunction(f, equalityConstraints, inequalityConstraints, penaltyCoefficient);
-                }
-                goto start;
-            }
+//            }
 
-#if DEBUG
-            Console.WriteLine($"Конечный размер шага= {stepSize} при начальном= {initStep}, прошло итераций= {iterCount}");
-#endif
-            return currentPoint;
-        }
+//#if DEBUG
+//            Console.WriteLine($"Конечный размер шага= {stepSize} при начальном= {initStep}, прошло итераций= {iterCount}");
+//#endif
+//            return currentPoint;
+//        }
     }
 }
